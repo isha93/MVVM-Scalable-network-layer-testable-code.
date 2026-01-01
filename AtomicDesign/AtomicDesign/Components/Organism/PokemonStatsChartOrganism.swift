@@ -11,34 +11,22 @@ struct PokemonStatsChartOrganism: View {
     let stats: [PokemonStat]
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: AppSpacing.md) {
             SectionHeaderAtom(title: "Base Stats")
             
-            VStack(spacing: 12) {
+            VStack(spacing: AppSpacing.sm) {
                 ForEach(stats) { stat in
                     StatRowMolecule(
                         statName: stat.stat.name,
                         value: stat.baseStat,
-                        color: colorForStat(stat.stat.name)
+                        color: AppColor.stat(stat.stat.name)
                     )
                 }
             }
             .padding(.horizontal)
         }
         .padding(.vertical)
-        .background(Color.white)
+        .background(AppColor.cardBackground)
         .cornerRadius(24)
-    }
-    
-    private func colorForStat(_ name: String) -> Color {
-        switch name {
-        case "hp": return .red
-        case "attack": return .orange
-        case "defense": return .yellow
-        case "special-attack": return .blue
-        case "special-defense": return .green
-        case "speed": return .pink
-        default: return .gray
-        }
     }
 }

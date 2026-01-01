@@ -7,29 +7,66 @@
 
 import SwiftUI
 
-/// Centralized font system for the application.
+// MARK: - Font Token
+/// A design token representing a complete font style.
+struct FontToken {
+    let font: Font
+    let lineHeight: CGFloat
+    let letterSpacing: CGFloat
+    
+    init(
+        size: CGFloat,
+        weight: Font.Weight = .regular,
+        design: Font.Design = .rounded,
+        lineHeight: CGFloat = 1.2,
+        letterSpacing: CGFloat = 0
+    ) {
+        self.font = .system(size: size, weight: weight, design: design)
+        self.lineHeight = lineHeight
+        self.letterSpacing = letterSpacing
+    }
+}
+
+// MARK: - Typography System
+/// Centralized typography system using design tokens.
 enum AppFont {
-    static func title1() -> Font {
-        .system(.largeTitle, design: .rounded, weight: .heavy)
-    }
+    // MARK: - Display
+    static let displayLarge = FontToken(size: 48, weight: .heavy, lineHeight: 1.1)
+    static let displayMedium = FontToken(size: 36, weight: .bold, lineHeight: 1.15)
+    static let displaySmall = FontToken(size: 28, weight: .bold, lineHeight: 1.2)
     
-    static func title2() -> Font {
-        .system(.title2, design: .rounded, weight: .bold)
-    }
+    // MARK: - Headings
+    static let heading1 = FontToken(size: 24, weight: .bold, lineHeight: 1.25)
+    static let heading2 = FontToken(size: 20, weight: .semibold, lineHeight: 1.3)
+    static let heading3 = FontToken(size: 18, weight: .semibold, lineHeight: 1.35)
     
-    static func title3() -> Font {
-        .system(.title3, design: .rounded, weight: .black)
-    }
+    // MARK: - Body
+    static let bodyLarge = FontToken(size: 17, weight: .regular, lineHeight: 1.5)
+    static let bodyMedium = FontToken(size: 15, weight: .regular, lineHeight: 1.5)
+    static let bodySmall = FontToken(size: 13, weight: .regular, lineHeight: 1.4)
     
-    static func headline() -> Font {
-        .system(.headline, design: .rounded, weight: .semibold)
-    }
+    // MARK: - Labels
+    static let labelLarge = FontToken(size: 14, weight: .semibold, lineHeight: 1.3)
+    static let labelMedium = FontToken(size: 12, weight: .medium, lineHeight: 1.3)
+    static let labelSmall = FontToken(size: 10, weight: .medium, lineHeight: 1.2)
     
-    static func subheadline() -> Font {
-        .system(.subheadline, design: .rounded, weight: .bold)
-    }
-    
-    static func body() -> Font {
-        .system(.body, design: .rounded, weight: .regular)
+    // MARK: - Legacy Support (Functions)
+    static func title1() -> Font { displayMedium.font }
+    static func title2() -> Font { heading1.font }
+    static func title3() -> Font { heading2.font }
+    static func headline() -> Font { heading3.font }
+    static func subheadline() -> Font { labelLarge.font }
+    static func body() -> Font { bodyMedium.font }
+    static func caption() -> Font { labelSmall.font }
+}
+
+// MARK: - View Extension
+extension View {
+    /// Apply a FontToken to a view.
+    func fontToken(_ token: FontToken) -> some View {
+        self
+            .font(token.font)
+            .lineSpacing(token.lineHeight)
+            .tracking(token.letterSpacing)
     }
 }

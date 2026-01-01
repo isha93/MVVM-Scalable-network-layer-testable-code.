@@ -12,6 +12,12 @@ struct StatBarAtom: View {
     let maxValue: Int = 255
     let color: Color
     
+    @State private var animatedValue: CGFloat = 0
+    
+    private var targetValue: CGFloat {
+        CGFloat(value) / CGFloat(maxValue)
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -21,9 +27,14 @@ struct StatBarAtom: View {
                 
                 Capsule()
                     .fill(color)
-                    .frame(width: CGFloat(value) / CGFloat(maxValue) * geometry.size.width, height: 8)
+                    .frame(width: animatedValue * geometry.size.width, height: 8)
             }
         }
         .frame(height: 8)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
+                animatedValue = targetValue
+            }
+        }
     }
 }
