@@ -14,7 +14,21 @@ struct PokemonListView: View {
     
     var body: some View {
         List {
-            if viewModel.isLoading {
+            Section {
+                if !viewModel.pokemons.isEmpty {
+                    FeaturedCarouselOrganism(
+                        pokemons: Array(viewModel.pokemons.prefix(5))
+                    ) { pokemon in
+                        router.push(.detail(name: pokemon.name))
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .padding(.vertical, 16)
+                    .background(Color.gray.opacity(0.05))
+                }
+            }
+            
+            if viewModel.isLoading && viewModel.pokemons.isEmpty {
                 ProgressView("Catching Pokemons...")
                     .frame(maxWidth: .infinity, alignment: .center)
                     .listRowSeparator(.hidden)
@@ -23,8 +37,23 @@ struct PokemonListView: View {
                     Button {
                         router.push(.detail(name: pokemon.name))
                     } label: {
-                        PokemonRow(pokemon: pokemon)
+                        PokemonRowMolecule(pokemon: pokemon)
                     }
+                    .buttonStyle(.scalable)
+                    .listRowSeparator(.hidden) // Cleaner look
+                    .onAppear {
+                        if pokemon.id == viewModel.pokemons.last?.id {
+                            Task {
+                                await viewModel.loadMore()
+                            }
+                        }
+                    }
+                }
+                
+                if viewModel.isLoading && !viewModel.pokemons.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowSeparator(.hidden)
                 }
             }
         }

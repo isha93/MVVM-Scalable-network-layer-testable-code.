@@ -10,8 +10,8 @@ import SwiftUI
 
 @Observable
 class PokemonDetailViewModel {
-    var pokemon: PokemonDetail?
-    var isLoading: Bool = false    
+    var pokemon: PokemonDetailResponse?
+    var isLoading: Bool = false
     private let pokeDetailService: PokeDetailServiceProtocol
     
     init(pokeDetailService: PokeDetailServiceProtocol = PokeDetailService()) {
@@ -22,12 +22,10 @@ class PokemonDetailViewModel {
         self.isLoading = true
         defer { isLoading = false }
         do {
-            let response = try await pokeDetailService.fetchPokemonsDetail(name: name)
+            let response = try await pokeDetailService.fetchPokemonDetail(idOrName: name)
             self.pokemon = response
-            self.isLoading = false
         } catch {
-            //TODO: handle error
-            print(error)
+            print("Error fetching detail: \(error)")
         }
     }
 }

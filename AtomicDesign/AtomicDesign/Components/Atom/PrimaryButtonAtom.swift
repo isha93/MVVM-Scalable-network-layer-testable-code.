@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PrimaryButtonView: View {
+struct PrimaryButtonAtom: View {
     var body: some View {
         VStack {
             Text("AA")
@@ -20,5 +20,5 @@ struct PrimaryButtonView: View {
 }
 
 #Preview {
-    PrimaryButtonView()
+    PrimaryButtonAtom()
 }

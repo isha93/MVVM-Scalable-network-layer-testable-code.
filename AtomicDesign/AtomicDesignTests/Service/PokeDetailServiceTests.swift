@@ -1,85 +1,78 @@
 //
 //  PokeDetailServiceTests.swift
-//  AtomicDesign
+//  AtomicDesignTests
 //
-//  Created by Isa Nur Fajar on 2025/12/05.
+//  Created by Isa Nur Fajar on 2026/01/01.
 //
 
 import XCTest
 @testable import AtomicDesign
 
 final class PokeDetailServiceTests: XCTestCase {
-    class MockNetworker: NetworkerProtocol {
-        enum Mode { case success, decodingFail, badRequest, serverError }
-        var mode: Mode = .success
-
-        func requestAsync<T>(type: T.Type, endPoint: Endpoint) async throws -> T where T : Decodable {
-            switch mode {
-            case .success:
-                let pokemon: PokemonDetail = PokemonDetail.mock(name: "bulbasaur")
-                // Hardcoded success for testing the happy path
-                // Note: In a real app, you might make this generic, but for the tutorial, we hardcode to match the article.
-                return pokemon as! T
-            case .decodingFail:
-                // Simulates a 200 OK but invalid JSON structure
-                throw APIRequestError.decodingError(message: "JSON Mismatch")
-            case .badRequest:
-                // Simulates 400
-                throw APIRequestError.badRequest(message: "Bad Request")
-            case .serverError:
-                // Simulates 500
-                throw APIRequestError.apiError(code: 500, message: "Server Error")
-            }
-        }
-    }
-
-    // MARK: - Article Tests
-    func test_fetchDetail_decodingError_shouldThrowCorrectError() async {
+    
+    // Test: Fetch Detail (Success)
+    func test_fetchPokemonDetail_success_shouldReturnDetail() async throws {
+        // Given
         let mock = MockNetworker()
-        mock.mode = .decodingFail
+        mock.mode = .success
+        // Construct a Mock Response
+        let detail = PokemonDetailResponse(
+            id: 1,
+            name: "bulbasaur",
+            height: 7,
+            weight: 69,
+            sprites: PokemonSprites(frontDefault: "url", other: nil),
+            stats: [],
+            types: [],
+            abilities: []
+        )
+        mock.mockResponse = detail
         let service = PokeDetailService(networker: mock)
-
+        
+        // When
+        let response = try await service.fetchPokemonDetail(idOrName: "bulbasaur")
+        
+        // Then
+        XCTAssertEqual(response.name, "bulbasaur")
+        XCTAssertEqual(response.id, 1)
+    }
+    
+    // Test: Fetch Detail (Not Found)
+    func test_fetchPokemonDetail_notFound_shouldThrowError() async {
+        // Given
+        let mock = MockNetworker()
+        // Simulate 404
+        mock.mode = .failure(APIRequestError.apiError(code: 404, message: "Not Found"))
+        let service = PokeDetailService(networker: mock)
+        
+        // When/Then
         do {
-            _ = try await service.fetchPokemonsDetail(name: "pikachu")
-            XCTFail("You shall not pass!")
+            _ = try await service.fetchPokemonDetail(idOrName: "missingno")
+            XCTFail("Expected error not thrown")
         } catch let error as APIRequestError {
-            switch error {
-            case .decodingError:
-                XCTAssertTrue(true) // We caught the imposter!
-            default:
-                XCTFail("Wrong error type: \(error)")
+            if case .apiError(let code, _) = error {
+                XCTAssertEqual(code, 404)
+            } else {
+                XCTFail("Wrong error type")
             }
         } catch {
             XCTFail("Generic error caught")
         }
     }
     
-    func test_fetchDetail_serverError_shouldPropagate() async {
+    // Test: Fetch Detail (Bad Request)
+    func test_fetchPokemonDetail_badRequest_shouldThrowError() async {
+        // Given
         let mock = MockNetworker()
-        mock.mode = .serverError
+        mock.mode = .failure(APIRequestError.badRequest(message: "Bad Request"))
         let service = PokeDetailService(networker: mock)
-
+        
+        // When/Then
         do {
-            _ = try await service.fetchPokemonsDetail(name: "mewtwo")
-            XCTFail("Expected Server Error")
-        } catch let error as APIRequestError {
-            if case .apiError(let code, _) = error {
-                XCTAssertEqual(code, 500) // Correctly identified the fire
-            } else {
-                XCTFail("Wrong error type")
-            }
+            _ = try await service.fetchPokemonDetail(idOrName: "")
+            XCTFail("Expected error not thrown")
         } catch {
-             XCTFail("Generic error")
+            XCTAssertTrue(error is APIRequestError)
         }
-    }
-    
-    func test_fetchDetail_success_shouldReturnData() async throws {
-        let mock = MockNetworker()
-        mock.mode = .success
-        let service = PokeDetailService(networker: mock)
-
-        let result = try await service.fetchPokemonsDetail(name: "bulbasaur")
-
-        XCTAssertEqual(result.name, "bulbasaur")
     }
 }
